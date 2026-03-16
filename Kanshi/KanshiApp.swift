@@ -21,17 +21,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
   func applicationDidFinishLaunching(_ notification: Notification) {
     UNUserNotificationCenter.current().delegate = self
 
-    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     if let button = statusItem.button {
       let icon = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: "CI Status")
       icon?.isTemplate = false
       button.image = icon
+      button.imagePosition = .imageLeading
       button.action = #selector(togglePopover)
       button.target = self
     }
 
-    viewModel.onStatusIconChange = { [weak self] image in
-      self?.statusItem.button?.image = image
+    viewModel.onStatusIconChange = { [weak self] image, failCount in
+      guard let button = self?.statusItem.button else { return }
+      button.image = image
+      button.title = failCount > 0 ? "\(failCount)" : ""
     }
 
     popover.contentViewController = NSHostingController(

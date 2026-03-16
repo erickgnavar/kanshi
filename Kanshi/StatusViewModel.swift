@@ -7,7 +7,7 @@ class StatusViewModel {
   var isLoading = false
   var errorMessage: String?
   var lastUpdated: Date?
-  var onStatusIconChange: ((NSImage) -> Void)?
+  var onStatusIconChange: ((NSImage, Int) -> Void)?
 
   @ObservationIgnored private var suppressObservers = true
 
@@ -126,7 +126,8 @@ class StatusViewModel {
       .applying(NSImage.SymbolConfiguration(pointSize: 16, weight: .regular))
     let colored = image.withSymbolConfiguration(config)!
     colored.isTemplate = false
-    onStatusIconChange?(colored)
+    let failCount = prStatuses.filter { $0.overallState == .failure }.count
+    onStatusIconChange?(colored, failCount)
   }
 
   // MARK: - Token Storage

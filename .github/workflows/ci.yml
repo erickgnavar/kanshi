@@ -1,0 +1,34 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install swift-format
+        run: brew install swift-format
+
+      - name: Check formatting
+        run: swift-format lint --strict --recursive .
+
+  build:
+    name: Build
+    needs: lint
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install just
+        run: brew install just
+
+      - name: Build (Debug)
+        run: just build

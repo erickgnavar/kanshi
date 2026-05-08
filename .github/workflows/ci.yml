@@ -27,8 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install just
-        run: brew install just
+      - name: Install just and xcodegen
+        run: brew install just xcodegen
 
       - name: Build (Debug)
         run: just build

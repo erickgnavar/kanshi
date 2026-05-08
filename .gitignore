@@ -15,6 +15,7 @@ Icon?
 # Xcode
 build/
 DerivedData/
+Kanshi.xcodeproj/
 *.xcworkspace/xcuserdata/
 xcuserdata/
 *.xccheckout

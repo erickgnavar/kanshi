@@ -10,10 +10,10 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: brew install just create-dmg
+        run: brew install just xcodegen create-dmg
 
       - name: Build release
         run: just release
@@ -45,7 +45,7 @@ jobs:
       contents: write
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

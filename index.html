@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanshi — CI Status in Your Menu Bar</title>
+    <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --green: #34c759;
+      --red: #ff3b30;
+      --yellow: #ffcc00;
+      --gray: #8e8e93;
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1c1c1e;
+      --text: #f5f5f7;
+      --text-secondary: #a1a1a6;
+      --border: #2c2c2e;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Nav */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+      50% { opacity: 0.6; box-shadow: 0 0 16px var(--green); }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(52, 199, 89, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      max-width: 800px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--green), #30d158);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin-bottom: 2.5rem;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #2db84e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(52, 199, 89, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #2c2c2e;
+      transform: translateY(-1px);
+    }
+
+    /* Menu bar mockup */
+    .menubar-demo {
+      margin-top: 4rem;
+      position: relative;
+    }
+
+    .menubar {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 0.5rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .menubar-icons {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .menubar-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      background: var(--border);
+    }
+
+    .kanshi-icon {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .kanshi-icon.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .kanshi-icon.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .kanshi-icon.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+
+    .popover-mock {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 340px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    .popover-mock::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      width: 12px;
+      height: 12px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+    }
+
+    .mock-pr {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      transition: background 0.15s;
+    }
+
+    .mock-pr:hover {
+      background: var(--surface-2);
+    }
+
+    .mock-pr .status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .mock-pr .name {
+      color: var(--text);
+      font-weight: 500;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mock-pr .repo {
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+    }
+
+    .mock-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.35rem 0.6rem;
+    }
+
+    /* Features */
+    .features {
+      padding: 6rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin-bottom: 3.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: #3a3a3c;
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.25rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Status colors */
+    .status-demo {
+      padding: 6rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-top: 3rem;
+    }
+
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .status-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+    }
+
+    .status-circle.green { background: var(--green); box-shadow: 0 0 24px rgba(52, 199, 89, 0.3); }
+    .status-circle.red { background: var(--red); box-shadow: 0 0 24px rgba(255, 59, 48, 0.3); }
+    .status-circle.yellow { background: var(--yellow); box-shadow: 0 0 24px rgba(255, 204, 0, 0.3); }
+    .status-circle.gray { background: var(--gray); box-shadow: 0 0 24px rgba(142, 142, 147, 0.2); }
+
+    .status-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .status-card p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Setup */
+    .setup {
+      padding: 6rem 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .steps {
+      margin-top: 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .step {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      color: var(--green);
+    }
+
+    .step-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-content p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .step-content code {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 0.8rem;
+      color: var(--green);
+    }
+
+    /* Tech */
+    .tech {
+      padding: 6rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .pill {
+      padding: 0.6rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Footer */
+    footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      nav {
+        padding: 0.75rem 1rem;
+      }
+
+      .nav-links {
+        gap: 1rem;
+      }
+
+      .nav-links a {
+        font-size: 0.8rem;
+      }
+
+      .hero {
+        padding: 6rem 1.5rem 3rem;
+      }
+
+      .hero p {
+        font-size: 1.05rem;
+      }
+
+      .cta-group {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .menubar-demo {
+        display: none;
+      }
+
+      .features, .status-demo, .setup, .tech {
+        padding: 4rem 1.5rem;
+      }
+
+      .step {
+        gap: 1rem;
+      }
+    }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="logo">
+        <div class="logo-dot"></div>
+        Kanshi
+      </div>
+      <ul class="nav-links">
+        <li>
+          <a href="#features">Features</a>
+        </li>
+        <li>
+          <a href="#setup">Setup</a>
+        </li>
+        <li>
+          <a href="https://github.com/erickgnavar/kanshi">GitHub</a>
+        </li>
+      </ul>
+    </nav>
+    <section class="hero">
+      <div class="badge">
+        <div class="badge-dot"></div>
+        Native macOS app
+      </div>
+      <h1>
+        CI status,
+        <br>
+        always <span class="highlight">visible</span>
+      </h1>
+      <p>
+        A menu bar app that monitors CI on your open GitHub PRs. Know instantly when builds pass or fail, without leaving your editor.
+      </p>
+      <div class="cta-group">
+        <a href="https://github.com/erickgnavar/kanshi/releases/latest"
+           class="btn btn-primary">Download</a>
+        <a href="https://github.com/erickgnavar/kanshi"
+           class="btn btn-secondary">View on GitHub</a>
+        <a href="#setup" class="btn btn-secondary">Get started</a>
+      </div>
+      <div class="menubar-demo">
+        <div class="menubar">
+          <span>Tue 10:42 AM</span>
+          <div class="menubar-icons">
+            <div class="menubar-icon"></div>
+            <div class="menubar-icon"></div>
+            <div class="kanshi-icon green"></div>
+          </div>
+        </div>
+        <div class="popover-mock">
+          <div class="mock-pr">
+            <div class="status" style="background: var(--green)"></div>
+            <span class="name">feat: add streaming endpoint</span>
+            <span class="repo">api</span>
+          </div>
+          <div class="mock-pr">
+            <div class="status" style="background: var(--green)"></div>
+            <span class="name">fix: token refresh race</span>
+            <span class="repo">api</span>
+          </div>
+          <div class="mock-divider"></div>
+          <div class="mock-pr">
+            <div class="status" style="background: var(--red)"></div>
+            <span class="name">chore: bump dependencies</span>
+            <span class="repo">web</span>
+          </div>
+          <div class="mock-pr">
+            <div class="status" style="background: var(--yellow)"></div>
+            <span class="name">refactor: auth middleware</span>
+            <span class="repo">web</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="features" id="features">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything at a glance</h2>
+      <p class="section-subtitle">No browser tabs, no context switching. Your CI status lives where you already look.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22"
+                 height="22"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <h3>Live polling</h3>
+          <p>Configurable polling interval from 30 seconds to 1 hour. Always up to date, never noisy.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22"
+                 height="22"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </div>
+          <h3>Failure notifications</h3>
+          <p>Desktop alerts fire only on state transitions to failure. No alert fatigue, just the signal you need.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22"
+                 height="22"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18" />
+            </svg>
+          </div>
+          <h3>Floating window</h3>
+          <p>Optional always-on-top panel shows your PR status while you work. Toggle it on or off anytime.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22"
+                 height="22"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <h3>Grouped by org</h3>
+          <p>PRs organized by organization and user, sorted by most recent. Find what you need fast.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22"
+                 height="22"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+          </div>
+          <h3>Deep links</h3>
+          <p>Click any job to jump straight to the GitHub check-run page. Drill into failures instantly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="22"
+                 height="22"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <h3>Secure storage</h3>
+          <p>Your GitHub token is stored in the macOS Keychain. Never written to disk in plain text.</p>
+        </div>
+      </div>
+    </section>
+    <section class="status-demo">
+      <div class="section-label">At a glance</div>
+      <h2 class="section-title">Four states, zero ambiguity</h2>
+      <p class="section-subtitle">The menu bar icon changes color to reflect your overall CI status.</p>
+      <div class="status-row">
+        <div class="status-card">
+          <div class="status-circle green"></div>
+          <h3>All passing</h3>
+          <p>Every check on every PR succeeded</p>
+        </div>
+        <div class="status-card">
+          <div class="status-circle red"></div>
+          <h3>Failure</h3>
+          <p>One or more checks have failed</p>
+        </div>
+        <div class="status-card">
+          <div class="status-circle yellow"></div>
+          <h3>In progress</h3>
+          <p>Checks are currently running</p>
+        </div>
+        <div class="status-card">
+          <div class="status-circle gray"></div>
+          <h3>No PRs</h3>
+          <p>No open pull requests found</p>
+        </div>
+      </div>
+    </section>
+    <section class="setup" id="setup">
+      <div class="section-label">Get started</div>
+      <h2 class="section-title">Up and running in 3 steps</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Get the app</h3>
+            <p>
+              Download the latest release from <a href="https://github.com/erickgnavar/kanshi/releases/latest">GitHub Releases</a>, or build from source.
+            </p>
+            <code>git clone https://github.com/erickgnavar/kanshi && cd kanshi && just release</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Move to Applications</h3>
+            <p>
+              Drag <strong>Kanshi.app</strong> to your Applications folder. Because the app is not notarized, remove the quarantine flag:
+            </p>
+            <code>xattr -dr com.apple.quarantine /Applications/Kanshi.app</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Add your GitHub token</h3>
+            <p>
+              Click the menu bar icon, expand Settings, and paste your Personal Access Token with <strong>repo</strong> scope.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="tech">
+      <div class="section-label">Built with</div>
+      <h2 class="section-title">Native, lean, no dependencies</h2>
+      <div class="tech-pills">
+        <span class="pill">Swift</span>
+        <span class="pill">SwiftUI</span>
+        <span class="pill">AppKit</span>
+        <span class="pill">macOS 14+</span>
+        <span class="pill">GitHub REST API</span>
+        <span class="pill">Keychain</span>
+        <span class="pill">Zero dependencies</span>
+      </div>
+    </section>
+    <footer>
+      <p>
+        Kanshi is open source. <a href="https://github.com/erickgnavar/kanshi">View on GitHub</a>
+      </p>
+    </footer>
+  </body>
+</html>

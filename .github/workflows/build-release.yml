@@ -1,0 +1,86 @@
+---
+name: Build release
+
+on:
+  push:
+    tags: "*"
+
+jobs:
+  build-macos:
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install just create-dmg
+
+      - name: Build release
+        run: just release
+
+      - name: Create DMG
+        run: |
+          app_path="./build/Build/Products/Release/Kanshi.app"
+          dmg_file="Kanshi-${{ github.ref_name }}.dmg"
+          create-dmg \
+            --volname "Kanshi Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --app-drop-link 450 185 \
+            "$dmg_file" \
+            "$app_path"
+          echo "dmg_file=$dmg_file" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer
+          path: ${{ env.dmg_file }}
+
+  publish-release:
+    runs-on: ubuntu-24.04
+    needs: [build-macos]
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-installer
+          path: macos/
+
+      - name: Generate release body
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG"..HEAD)
+          fi
+          {
+            echo "body<<EOF"
+            echo "## What's Changed"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...${{ github.ref_name }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.body }}
+          tag_name: ${{ github.ref_name }}
+          files: |
+            macos/*.dmg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          make_latest: true

@@ -4,11 +4,11 @@ project := "Kanshi.xcodeproj"
 
 # Build the app (debug)
 build:
-    xcodebuild -project {{ project }} -scheme {{ scheme }} -configuration Debug build
+    xcodebuild -project {{ project }} -scheme {{ scheme }} -configuration Debug -derivedDataPath build build
 
 # Build release
 release:
-    xcodebuild -project {{ project }} -scheme {{ scheme }} -configuration Release build
+    xcodebuild -project {{ project }} -scheme {{ scheme }} -configuration Release -derivedDataPath build build
 
 # Format all Swift files with swift-format
 fmt:

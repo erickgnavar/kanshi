@@ -41,8 +41,3 @@ Package.resolved
 
 # just
 .justfile.local
-
-# Local planning artifacts
-plan.md
-plan-pre.md
-plans/
